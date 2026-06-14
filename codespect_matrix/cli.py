@@ -5,7 +5,7 @@ import json
 import sys
 from typing import Optional
 
-from iterative_qa import QAService
+from codespect_matrix import QAService
 
 # 严重度排序权重（用于结果展示）
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
@@ -13,37 +13,37 @@ SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="iterative-qa",
+        prog="codespect-matrix",
         description="AI驱动的智能质量校验引擎 — 25专家 × 5能力 × 全链路覆盖",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
   # 执行全量质量校验（默认）
-    iterative-qa --round 1
+    codespect-matrix --round 1
     
     # 快速扫描模式（仅 top-5 专家）
-    iterative-qa --targeted
+    codespect-matrix --targeted
   
   # CI/CD 门禁模式（GitHub Actions / Jenkins）
-  iterative-qa --ci --json
+  codespect-matrix --ci --json
   
   # 增量校验（仅扫描 git diff 变更文件）
-  iterative-qa --diff
+  codespect-matrix --diff
   
   # 建立基线
-  iterative-qa --baseline
+  codespect-matrix --baseline
   
   # 对比基线变化
-  iterative-qa --baseline-diff
+  codespect-matrix --baseline-diff
   
   # 风险评分
-  iterative-qa --risk-score
+  codespect-matrix --risk-score
   
   # 完整校验周期
-  iterative-qa --full-cycle
+  codespect-matrix --full-cycle
   
   # 生成详细报告
-  iterative-qa --report --output report.md
+  codespect-matrix --report --output report.md
         """
     )
     
@@ -128,7 +128,7 @@ def main():
     parser.add_argument(
         "--baseline",
         action="store_true",
-        help="保存当前 QA 结果为基线 (.iterative_qa_baseline.json)"
+        help="保存当前 QA 结果为基线 (.codespect_matrix_baseline.json)"
     )
     
     parser.add_argument(
@@ -222,7 +222,7 @@ def main():
             score = qa_service.compute_risk_score()
             print(f"风险等级: {score.get('risk_level', 'N/A')}")
             print(f"问题总数: {score.get('issue_count', 0)}")
-            print(f"\n后续运行 `iterative-qa --baseline-diff` 可对比变化")
+            print(f"\n后续运行 `codespect-matrix --baseline-diff` 可对比变化")
             sys.exit(0)
         
         # ── 基线对比模式 ──
@@ -232,7 +232,7 @@ def main():
                 print(json.dumps(result, indent=2, ensure_ascii=False))
             else:
                 if not result["has_baseline"]:
-                    print("❌ 未找到基线文件。请先运行 `iterative-qa --baseline`")
+                    print("❌ 未找到基线文件。请先运行 `codespect-matrix --baseline`")
                 else:
                     delta = result["delta"]
                     trend_icon = {"improving": "⬇ 改善", "degrading": "⬆ 恶化", "stable": "→ 稳定"}

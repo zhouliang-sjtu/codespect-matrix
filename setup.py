@@ -1,4 +1,4 @@
-"""iterative-qa - AI驱动的智能质量校验引擎 — 26位专家 × 5种能力 × 全链路覆盖"""
+"""codespect-matrix - AI驱动的智能质量校验引擎"""
 
 from setuptools import setup, find_packages
 
@@ -6,14 +6,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="iterative-qa",
+    name="codespect-matrix",
     version="4.0.0",
     author="周良",
     author_email="zhouliang@shsmu.edu.cn",
-    description="AI驱动的智能多视角质量校验引擎 — 26位视角专家全量扫描 + CI门禁 + 风险评分 + 增量diff + 基线对比",
+    description="codespect-matrix — 26位视角专家矩阵式代码质量审计引擎",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/zhouliang-sjtu/iterative-qa",
+    url="https://github.com/zhouliang-sjtu/codespect-matrix",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -33,7 +33,7 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "iterative-qa=iterative_qa.cli:main",
+            "codespect-matrix=codespect_matrix.cli:main",
         ],
     },
     include_package_data=True,

@@ -1,4 +1,4 @@
-"""iterative-qa - AI驱动的智能质量校验引擎
+"""codespect-matrix - AI驱动的智能质量校验引擎
 
 通过大模型分析项目特征，动态识别最优验证视角，实现精准的多维度质量审计与工程优化。
 
@@ -11,7 +11,7 @@
 - 质量报告生成：大模型驱动的专业质量报告自动生成
 
 示例：
-    from iterative_qa import QAService
+    from codespect_matrix import QAService
     
     qa_service = QAService()
     result = qa_service.validate()

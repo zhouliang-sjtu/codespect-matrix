@@ -1,4 +1,4 @@
-# iterative-qa 配置文件 v4.0.0
+# codespect-matrix 配置文件 v4.0.0
 # 26位视角专家 × 5种能力 — 全链路质量校验
 
 # 视角专家配置（全部 26 位，默认全部启用）
@@ -139,7 +139,7 @@ report:
   include_summary: true
   include_details: true
   include_recommendations: true
-  baseline_file: .iterative_qa_baseline.json
+  baseline_file: .codespect_matrix_baseline.json
   output_directory: ./reports
 
 # 医疗领域专项配置
@@ -155,4 +155,4 @@ healthcare:
 logging:
   level: INFO
   format: "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-  file_path: ./logs/iterative-qa.log
+  file_path: ./logs/codespect-matrix.log

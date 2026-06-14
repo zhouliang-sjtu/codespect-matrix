@@ -1,4 +1,4 @@
-# iterative-qa - AI驱动的智能质量校验引擎 — 26位专家 × 5种能力
+# codespect-matrix - AI驱动的智能质量校验引擎 — 26位专家 × 5种能力
 
 # 核心依赖
 python>=3.10

@@ -1,6 +1,6 @@
-name: "iterative-qa"
+name: "codespect-matrix"
 version: "4.0.0"
-description: "AI驱动的智能多视角质量校验引擎 — 26位视角专家全量扫描 + CI门禁 + 风险评分 + 增量diff + 基线对比"
+description: "codespect-matrix — 26位视角专家矩阵式代码质量审计引擎"
 author:
   name: "周良"
   email: "zhouliang@shsmu.edu.cn"

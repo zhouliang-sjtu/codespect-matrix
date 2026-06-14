@@ -1,6 +1,6 @@
 <p align="center">
-  <h1 align="center">iterative-qa</h1>
-  <p align="center"><strong>AI 驱动的智能质量校验引擎 — 26位专家 × 5种能力 × 全链路覆盖</strong></p>
+  <h1 align="center">codespect-matrix</h1>
+  <p align="center"><strong>codespect-matrix — 26位视角专家矩阵式代码质量审计引擎</strong></p>
   <p align="center">
     <img src="https://img.shields.io/badge/version-4.0.0-blue" alt="Version">
     <img src="https://img.shields.io/badge/python-3.10+-green" alt="Python">
@@ -17,13 +17,13 @@
 
 ## 一句话介绍
 
-> 不是又一个 Linter。**iterative-qa** 像一支虚拟的 QA 团队——让 26 位 AI 视角专家围绕你的项目展开多轮交叉审查，直到所有问题收敛，再输出可执行的质量报告和风险评分。
+> 不是又一个 Linter。**codespect-matrix** 像一支虚拟的 QA 团队——让 26 位 AI 视角专家围绕你的项目展开多轮交叉审查，直到所有问题收敛，再输出可执行的质量报告和风险评分。
 
 ---
 
 ## 解决什么痛点？
 
-| 传统质量检查 | iterative-qa |
+| 传统质量检查 | codespect-matrix |
 |---|---|
 | 单一视角（Linter / 单测覆盖） | 26 种视角专家全量联合审查 |
 | 规则死板，配置繁琐 | AI 动态适配项目特征，默认全量运行 |
@@ -41,27 +41,27 @@
 
 ```bash
 # 安装
-pip install https://github.com/zhouliang-sjtu/iterative-qa/releases/download/v4.0.0/iterative_qa-4.0.0-py3-none-any.whl
+pip install https://github.com/zhouliang-sjtu/codespect-matrix/releases/download/v4.0.0/codespect_matrix-4.0.0-py3-none-any.whl
 
 # 一行全量扫描（26 位专家全部运行）
-iterative-qa
+codespect-matrix
 
 # CI 门禁
-iterative-qa --ci --json
+codespect-matrix --ci --json
 
 # 增量扫描
-iterative-qa --diff
+codespect-matrix --diff
 
 # 完整收敛周期
-iterative-qa --full-cycle --report --output report.md
+codespect-matrix --full-cycle --report --output report.md
 ```
 
 <details>
 <summary> 源码安装</summary>
 
 ```bash
-git clone https://github.com/zhouliang-sjtu/iterative-qa.git
-cd iterative-qa
+git clone https://github.com/zhouliang-sjtu/codespect-matrix.git
+cd codespect-matrix
 pip install -e .
 ```
 </details>
@@ -103,11 +103,11 @@ pip install -e .
 ### 五大能力
 
 ```
-全量扫描 ──── iterative-qa --round 1
-CI 门禁 ──── iterative-qa --ci --json
-风险评分 ──── iterative-qa --risk-score
-增量 diff ─── iterative-qa --diff
-基线对比 ──── iterative-qa --baseline-diff
+全量扫描 ──── codespect-matrix --round 1
+CI 门禁 ──── codespect-matrix --ci --json
+风险评分 ──── codespect-matrix --risk-score
+增量 diff ─── codespect-matrix --diff
+基线对比 ──── codespect-matrix --baseline-diff
 ```
 
 ### 迭代收敛机制
@@ -138,8 +138,8 @@ CI 门禁 ──── iterative-qa --ci --json
 
 ```yaml
 # .github/workflows/qa.yml
-- name: iterative-qa gate
-  run: iterative-qa --ci --json > qa-report.json
+- name: codespect-matrix gate
+  run: codespect-matrix --ci --json > qa-report.json
   # exit_code=0 放行，exit_code=1 拦截
 ```
 
@@ -179,7 +179,7 @@ cp .env.example .env
 ## API 使用
 
 ```python
-from iterative_qa import QAService
+from codespect_matrix import QAService
 
 qa = QAService(project_path="/path/to/project")
 
@@ -214,7 +214,7 @@ qa.run_full_cycle(max_rounds=10)
 ## 自定义扩展
 
 ```python
-from iterative_qa import BasePerspectiveExpert, ValidationResult
+from codespect_matrix import BasePerspectiveExpert, ValidationResult
 
 class MyExpert(BasePerspectiveExpert):
     def get_name(self):
@@ -270,14 +270,14 @@ qa.register_expert(MyExpert)
 ## 项目结构
 
 ```
-iterative-qa/
+codespect-matrix/
 ├── .env.example              # 环境配置（7种LLM + Sentry + Redis）
 ├── iterative_qa.yaml         # 策略配置（26位专家 + CI阈值）
 ├── pyproject.toml            # 构建配置
 ├── requirements.txt          # 依赖清单
 ├── SKILL.md                  # 技能规范（Trae 市场）
 ├── skill.yaml                # 技能元数据
-├── iterative_qa/
+├── codespect_matrix/
 │   ├── __init__.py
 │   ├── cli.py                # CLI（12个子命令）
 │   ├── core.py               # QAService + 5能力引擎
@@ -292,7 +292,7 @@ iterative-qa/
 
 ## 免费 + 捐赠
 
-iterative-qa 完全免费。如果对你有帮助，欢迎：
+codespect-matrix 完全免费。如果对你有帮助，欢迎：
 - ⭐ **Star 这个项目**
 - 💰 **GitHub Sponsors**: [sponsor/zhouliang-sjtu](https://github.com/sponsors/zhouliang-sjtu)
 - 📢 **分享给更多开发者**

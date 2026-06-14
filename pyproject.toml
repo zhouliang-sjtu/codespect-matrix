@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "iterative-qa"
+name = "codespect-matrix"
 version = "4.0.0"
 description = "AI驱动的智能多视角质量校验引擎 — 26位视角专家全量扫描 + CI门禁 + 风险评分 + 增量diff + 基线对比"
 readme = "README.md"
@@ -60,19 +60,19 @@ dev = [
 ]
 
 [project.scripts]
-iterative-qa = "iterative_qa.cli:main"
+codespect-matrix = "codespect_matrix.cli:main"
 
 [project.urls]
-"Homepage" = "https://github.com/zhouliang-sjtu/iterative-qa"
-"Documentation" = "https://github.com/zhouliang-sjtu/iterative-qa/blob/main/README.md"
-"Bug Tracker" = "https://github.com/zhouliang-sjtu/iterative-qa/issues"
+"Homepage" = "https://github.com/zhouliang-sjtu/codespect-matrix"
+"Documentation" = "https://github.com/zhouliang-sjtu/codespect-matrix/blob/main/README.md"
+"Bug Tracker" = "https://github.com/zhouliang-sjtu/codespect-matrix/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["iterative_qa", "iterative_qa.*"]
+include = ["codespect_matrix", "codespect_matrix.*"]
 
 [tool.setuptools.package-data]
-iterative_qa = ["*.yaml"]
+codespect_matrix = ["*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

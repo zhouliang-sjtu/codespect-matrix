@@ -29,7 +29,7 @@ CI_GATE_THRESHOLDS = {
     "medium": 30,    # ≤30 个 medium
 }
 
-BASELINE_FILE = ".iterative_qa_baseline.json"
+BASELINE_FILE = ".codespect_matrix_baseline.json"
 
 
 class QAService:
