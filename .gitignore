@@ -78,9 +78,3 @@ RELEASE_NOTES*.md
 
 # Trae IDE skills (local only)
 .trae/
-
-# Local docs (IP-sensitive, tracked locally only in main-local branch)
-docs/
-
-# Local scripts (push helpers, not for public repo)
-scripts/
