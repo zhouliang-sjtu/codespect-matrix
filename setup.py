@@ -10,7 +10,7 @@ setup(
     version="1.0.0",
     author="周良",
     author_email="zhouliang@shsmu.edu.cn",
-    description="codespect-matrix — 16-Agent Code Evolution Platform · Debate Review · Hybrid Engine · Health Scoring",
+    description="codespect-matrix — 16-Agent Code Evolution Platform · QA Self-Evolving · Debate Review · Hybrid Engine · Health Scoring",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zhouliang-sjtu/codespect-matrix",

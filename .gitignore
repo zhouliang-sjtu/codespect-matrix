@@ -59,6 +59,7 @@ config/local.*
 .codespect_matrix_baseline.json
 .codespect_matrix_backups/
 reports/
+~/.codespect_matrix_knowledge/
 
 # Docker
 docker-compose.override.yml

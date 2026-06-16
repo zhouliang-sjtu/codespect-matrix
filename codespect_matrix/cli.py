@@ -70,6 +70,11 @@ examples:
         action="store_true",
         help="save evolution analysis as baseline for trend comparison"
     )
+    parser.add_argument(
+        "--evolve-self",
+        action="store_true",
+        help="self-evolution summary — show what the tool has learned from past QA cycles"
+    )
     
     # ── AI autonomous fix ──
     parser.add_argument(
@@ -92,6 +97,10 @@ examples:
     
     try:
         # ── Code evolution ──
+        if args.evolve_self:
+            _run_evolve_self(args)
+            return
+        
         if args.evolve or args.evolve_baseline:
             _run_evolve(args, save_baseline=args.evolve_baseline)
             return
@@ -394,3 +403,52 @@ def _run_fix_execute(args):
     print(f"note: file-level auto-fix requires LLM to generate exact code patches.")
     print(f"      use --evolve to review remaining issues and generate roadmap.")
     sys.exit(0 if success > 0 else 1)
+
+
+# ══════════════════════════════════════════════
+# Self-evolution summary
+# ══════════════════════════════════════════════
+
+def _run_evolve_self(args):
+    """Self-evolution summary — what the tool has learned."""
+    from codespect_matrix.evolution import SelfEvolver
+
+    print(f"{'='*60}")
+    print("  codespect-matrix — Self-Evolution Summary")
+    print("  What has been learned from past QA cycles")
+    print(f"{'='*60}")
+
+    evolver = SelfEvolver()
+    summary = evolver.get_evolution_summary()
+
+    if summary.get("status") == "no_data":
+        print("\n  No QA cycles recorded yet.")
+        print("  The tool evolves as you use it across projects:")
+        print("  1. Run codespect-matrix on your project")
+        print("  2. Fix issues found")
+        print("  3. Re-run to verify improvements")
+        print("  4. The tool learns from each cycle automatically")
+        return
+
+    print(f"\n  Generation:        {summary['generation']}")
+    print(f"  QA Cycles:         {summary['total_cycles']}")
+    print(f"  Projects Helped:   {summary['projects_helped']}")
+    print(f"  Avg Health Gain:   {summary['average_health_improvement']:.1f}%")
+    print(f"  Patterns Learned:  {summary['patterns_learned']}")
+
+    if summary.get("top_agents"):
+        print(f"\n  Top Agents:")
+        for i, agent in enumerate(summary["top_agents"], 1):
+            print(f"    {i}. {agent}")
+
+    if summary.get("fix_effectiveness"):
+        print(f"\n  Fix Confidence by Issue Type:")
+        for check, data in summary["fix_effectiveness"].items():
+            bar = "#" * int(data["confidence"] * 20)
+            print(f"    {check:30s} [{bar}{'-'*(20-len(bar))}] {data['confidence']:.0%} ({data['total']} attempts)")
+
+    print(f"\n  Knowledge base: ~/.codespect_matrix_knowledge/self_evolution.json")
+
+    if args.json:
+        import json
+        print("\n" + json.dumps(summary, indent=2, ensure_ascii=False, default=str))

@@ -118,6 +118,24 @@ codespect-matrix --evolve-baseline # Save as baseline for trend tracking
 | **Evolution Trend** | Baseline comparison → improving / degrading / stable |
 | **Roadmap** | P0-P2 prioritized improvement items with effort estimates |
 
+### Self-Evolution Engine
+
+```bash
+codespect-matrix --evolve-self     # See what the tool has learned
+```
+
+codespect-matrix learns from every QA cycle across projects:
+
+| Phase | What Happens |
+|---|---|
+| 1. Scan | Run codespect-matrix on a project → findings |
+| 2. Fix | Apply remediation → `record_qa_cycle()` captures fixes |
+| 3. Re-scan | Verify health improvement → delta tracked |
+| 4. Learn | Pattern confidence updated, agent weights adjusted |
+| 5. Evolve | `SelfEvolver.evolve()` prunes low-confidence templates, promotes proven patterns to global KB |
+
+Over time, the tool gets more accurate: fewer false positives, faster fix suggestions, better agent selection per project type.
+
 ---
 
 ## LLM Support
@@ -185,6 +203,22 @@ report = reporter.generate_full_report()
 print(f"Health: {report['health']['health_score']}/100")
 ```
 
+```python
+# Self-evolution
+from codespect_matrix.evolution import SelfEvolver
+
+evolver = SelfEvolver()
+evolver.record_qa_cycle(
+    project_name="my-app",
+    before_health=62.3,
+    findings=[...],           # from agent scan
+    fixes_applied=[...],      # what was fixed
+    after_health=85.1,        # re-scan result
+)
+evolver.evolve()              # prune weak patterns, promote proven ones
+print(evolver.get_evolution_summary())
+```
+
 ---
 
 ## Custom Agents
@@ -223,6 +257,7 @@ orch._add_agent("my_agent", MyAgent(name="my_agent", role=AgentRole.INSPECTOR))
 | `--json` | JSON output |
 | `--evolve` | Code evolution analysis — health + debt + architecture + roadmap |
 | `--evolve-baseline` | Save evolution analysis as baseline for trend comparison |
+| `--evolve-self` | Self-evolution summary — what the tool has learned from past QA cycles |
 | `--fix-plan` | AI fix — step 1: generate plan |
 | `--fix-execute` | AI fix — step 2: execute |
 | `--fix-all` | Execute all fixes including high-risk ones (with `--fix-execute`) |

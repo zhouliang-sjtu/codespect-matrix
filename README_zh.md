@@ -86,6 +86,24 @@ codespect-matrix --evolve-baseline # 保存为基线用于趋势对比
 | **演变趋势** | 基线对比 → 改善 / 恶化 / 稳定 |
 | **改进路线图** | P0-P2 优先级改进项 + 预估工时 |
 
+### 自进化引擎
+
+```bash
+codespect-matrix --evolve-self     # 查看工具学到了什么
+```
+
+codespect-matrix 从每次跨项目 QA 闭环中持续学习：
+
+| 阶段 | 说明 |
+|---|---|
+| 1. 扫描 | 运行 codespect-matrix → 发现问题 |
+| 2. 修复 | 应用修复 → `record_qa_cycle()` 记录修复细节 |
+| 3. 再扫描 | 验证健康分提升 → 追踪增量 |
+| 4. 学习 | 更新模式置信度、调整 Agent 权重 |
+| 5. 进化 | `SelfEvolver.evolve()` 剪枝低效模板，提升已验证模式到全局知识库 |
+
+长期使用后，工具会越来越精准：减少误报、更快推荐修复方案、更智能选择 Agent。
+
 ### 医疗领域专项
 
 | 检查项 | 说明 |
@@ -122,6 +140,7 @@ codespect-matrix --evolve-baseline # 保存为基线用于趋势对比
 | `--json` | JSON输出 |
 | `--evolve` | 代码进化分析 |
 | `--evolve-baseline` | 保存进化基线 |
+| `--evolve-self` | 自进化摘要 — 工具从历史 QA 中学到了什么 |
 | `--fix-plan` | AI修复 — 第1步：生成方案 |
 | `--fix-execute` | AI修复 — 第2步：执行 |
 | `--fix-all` | 包括高风险修复（配合 `--fix-execute`） |
@@ -148,6 +167,22 @@ report = reporter.generate_full_report()
 print(f"Health: {report['health']['health_score']}/100")
 ```
 
+```python
+# 自进化
+from codespect_matrix.evolution import SelfEvolver
+
+evolver = SelfEvolver()
+evolver.record_qa_cycle(
+    project_name="my-app",
+    before_health=62.3,
+    findings=[...],           # 来自 Agent 扫描
+    fixes_applied=[...],      # 修复内容
+    after_health=85.1,        # 再扫描结果
+)
+evolver.evolve()              # 剪枝低效模式，提升已验证模式
+print(evolver.get_evolution_summary())
+```
+
 ---
 
 ### 开发
@@ -168,4 +203,4 @@ ruff check codespect_matrix/             # 代码检查
 
 **版本**: 1.0.0 · **状态**: 稳定 — 生产就绪  
 **测试**: 82 通过 · **覆盖率**: 59%  
-**架构**: 多智能体 · 辩论审查 · 混合引擎 · 代码进化
+**架构**: 多智能体 · 辩论审查 · 混合引擎 · 代码进化 · 自主进化

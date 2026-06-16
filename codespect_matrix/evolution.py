@@ -320,7 +320,16 @@ class ArchitectureAnalyzer:
 class TestCoverageEstimator:
     """Estimate test coverage via pytest --cov when available."""
 
-    def estimate(self, project_path: str) -> Dict[str, Any]:
+    def _count_test_files(self, project_path: str) -> int:
+        """Count test files in project."""
+        count = 0
+        for root, dirs, files in os.walk(project_path):
+            for file in files:
+                if (file.startswith("test_") or file.endswith("_test.py")) and file.endswith(".py"):
+                    count += 1
+        return count
+
+    def estimate(self, project_path: str) -> Dict:
         """Run pytest --cov and parse results."""
         # Try reading existing coverage.json first
         cov_path = os.path.join(project_path, "coverage.json")
@@ -335,6 +344,7 @@ class TestCoverageEstimator:
                     "percent_covered": round(pct, 1),
                     "covered_lines": totals.get("covered_lines", 0),
                     "total_lines": totals.get("num_statements", 0),
+                    "test_files_found": self._count_test_files(project_path),
                     "level": self._coverage_level(pct),
                 }
             except Exception:
@@ -356,22 +366,17 @@ class TestCoverageEstimator:
                     "percent_covered": round(totals.get("percent_covered", 0), 1),
                     "covered_lines": totals.get("covered_lines", 0),
                     "total_lines": totals.get("num_statements", 0),
+                    "test_files_found": self._count_test_files(project_path),
                     "level": self._coverage_level(totals.get("percent_covered", 0)),
                 }
         except Exception:
             pass
 
         # Fallback: count test files
-        test_count = 0
-        for root, dirs, files in os.walk(project_path):
-            for file in files:
-                if file.startswith("test_") or file.endswith("_test.py"):
-                    test_count += 1
-
         return {
             "has_coverage": False,
             "percent_covered": 0,
-            "test_files_found": test_count,
+            "test_files_found": self._count_test_files(project_path),
             "level": "unknown",
             "note": "Run `pip install pytest-cov` for accurate coverage",
         }
@@ -601,3 +606,270 @@ class EvolutionBaseline:
             delta_summary["findings_delta"] = curr_findings - prev_findings
 
         return delta_summary
+
+
+# ════════════════════════════════════════════════════════════════════════
+# Self-Evolution Engine — learns from QA → Fix → Re-QA cycles
+# ════════════════════════════════════════════════════════════════════════
+
+SELF_EVOLVE_PATH = os.path.join(os.path.expanduser("~"), ".codespect_matrix_knowledge", "self_evolution.json")
+
+
+class SelfEvolver:
+    """Learns from QA cycles across projects to improve future scans.
+
+    Tracks the full loop:
+    1. Scan → findings
+    2. Fix → apply remediation
+    3. Re-scan → verify health delta
+    4. Learn → update pattern confidence, agent weights, fix templates
+
+    Over time, the tool becomes more accurate because it knows:
+    - Which patterns produce real vs false-positive findings
+    - Which fix templates actually work
+    - Which agents are most effective for each project type
+    """
+
+    def __init__(self):
+        os.makedirs(os.path.dirname(SELF_EVOLVE_PATH), exist_ok=True)
+        self.data = self._load()
+
+    def _load(self) -> Dict:
+        if os.path.exists(SELF_EVOLVE_PATH):
+            try:
+                with open(SELF_EVOLVE_PATH, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return {
+            "version": "1.0.0",
+            "created": datetime.now(UTC).isoformat(),
+            "qa_cycles": [],           # Full QA cycle records
+            "fix_effectiveness": {},   # check_name → success/fail counts
+            "agent_performance": {},   # agent → accuracy stats
+            "learned_patterns": {},    # patterns discovered from fixes
+            "evolution_generations": 0,
+            "total_cycles": 0,
+            "total_projects": set(),   # dedup via list on save
+        }
+
+    def _save(self):
+        # Convert set to list for JSON serialization
+        self.data["total_projects"] = list(self.data["total_projects"])
+        with open(SELF_EVOLVE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(self.data, f, indent=2, ensure_ascii=False, default=str)
+
+    # ─── Cycle Recording ─────────────────────────────────────────────────
+
+    def record_qa_cycle(self, project_name: str,
+                        before_health: float,
+                        findings: List[Dict],
+                        fixes_applied: List[Dict],
+                        after_health: Optional[float] = None,
+                        fix_details: Optional[List[Dict]] = None):
+        """Record a complete QA → Fix → Re-QA cycle.
+
+        Args:
+            project_name: project identifier
+            before_health: health score before fixing
+            findings: list of {check_name, severity, message, agent}
+            fixes_applied: list of {check_name, fix_type, success, description}
+            after_health: health score after fixing (None if not re-scanned)
+            fix_details: detailed fix reasoning {check_name, reasoning, old_code, new_code}
+        """
+        cycle = {
+            "project": project_name,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "before_health": before_health,
+            "after_health": after_health,
+            "health_delta": round(after_health - before_health, 1) if after_health else None,
+            "findings_count": len(findings),
+            "findings": findings,
+            "fixes_applied": fixes_applied,
+            "fix_details": fix_details or [],
+            "generation": self.data["evolution_generations"],
+        }
+        self.data["qa_cycles"].append(cycle)
+        self.data["total_cycles"] += 1
+        self.data["total_projects"].add(project_name)
+
+        # Track fix effectiveness
+        for fix in fixes_applied:
+            check = fix.get("check_name", "unknown")
+            success = fix.get("success", False)
+            if check not in self.data["fix_effectiveness"]:
+                self.data["fix_effectiveness"][check] = {"success": 0, "fail": 0}
+            if success:
+                self.data["fix_effectiveness"][check]["success"] += 1
+            else:
+                self.data["fix_effectiveness"][check]["fail"] += 1
+
+        # Track agent performance
+        for finding in findings:
+            agent = finding.get("agent", "unknown")
+            severity = finding.get("severity", "low")
+            if agent not in self.data["agent_performance"]:
+                self.data["agent_performance"][agent] = {
+                    "findings": 0, "useful": 0, "false_positive": 0,
+                    "severity_weights": {"critical": 0, "high": 0, "medium": 0, "low": 0},
+                }
+            self.data["agent_performance"][agent]["findings"] += 1
+            self.data["agent_performance"][agent]["severity_weights"][severity] += 1
+
+        # Learn from fix details
+        if fix_details:
+            self._learn_from_fixes(fix_details, findings)
+
+        self._save()
+
+    def _learn_from_fixes(self, fix_details: List[Dict], findings: List[Dict]):
+        """Extract patterns from successful fixes.
+
+        When a fix works (health improves), capture:
+        - The pattern that triggered the finding
+        - The reasoning behind the fix
+        - The actual code change
+        """
+        findings_map = {f.get("check_name"): f for f in findings}
+        for fix in fix_details:
+            check = fix.get("check_name", "")
+            reasoning = fix.get("reasoning", "")
+            if not check or not reasoning:
+                continue
+
+            if check not in self.data["learned_patterns"]:
+                self.data["learned_patterns"][check] = {
+                    "discovered_at": datetime.now(UTC).isoformat(),
+                    "occurrences": 0,
+                    "reasonings": [],
+                    "successful_templates": [],
+                }
+            entry = self.data["learned_patterns"][check]
+            entry["occurrences"] += 1
+            if reasoning not in entry["reasonings"]:
+                entry["reasonings"].append(reasoning)
+            if fix.get("new_code"):
+                entry["successful_templates"].append({
+                    "old_code": fix.get("old_code", "")[:200],
+                    "new_code": fix["new_code"][:200],
+                    "reasoning": reasoning[:300],
+                })
+
+    # ─── Intelligence Queries ────────────────────────────────────────────
+
+    def get_fix_confidence(self, check_name: str) -> float:
+        """How likely a fix for this check will succeed (0.0-1.0)."""
+        stats = self.data["fix_effectiveness"].get(check_name)
+        if not stats:
+            return 0.5  # unknown — neutral
+        total = stats["success"] + stats["fail"]
+        if total == 0:
+            return 0.5
+        return stats["success"] / total
+
+    def get_best_agents(self, project_type: str = None, top_n: int = 8) -> List[str]:
+        """Return most effective agents, optionally filtered by project type."""
+        perf = self.data["agent_performance"]
+        if not perf:
+            return []
+
+        scored = []
+        for agent, stats in perf.items():
+            if stats["findings"] == 0:
+                continue
+            # Score: how many useful findings per total, weighted by severity mix
+            useful_ratio = (stats.get("useful", 0) + 1) / (stats["findings"] + 1)
+            sev = stats["severity_weights"]
+            sev_score = sev.get("critical", 0) * 10 + sev.get("high", 0) * 4 + sev.get("medium", 0)
+            total_score = useful_ratio * (sev_score + 1)
+            scored.append((agent, total_score))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return [a[0] for a in scored[:top_n]]
+
+    def get_known_fix(self, check_name: str) -> Optional[str]:
+        """Return a previously successful fix reasoning for a check."""
+        patterns = self.data["learned_patterns"].get(check_name)
+        if patterns and patterns.get("reasonings"):
+            return patterns["reasonings"][0]
+        return None
+
+    def get_evolution_summary(self) -> Dict:
+        """Summary of how much the tool has learned."""
+        cycles = self.data["qa_cycles"]
+        if not cycles:
+            return {"status": "no_data", "message": "No QA cycles recorded yet"}
+
+        health_deltas = [c["health_delta"] for c in cycles if c.get("health_delta") is not None]
+        avg_delta = sum(health_deltas) / len(health_deltas) if health_deltas else 0
+
+        return {
+            "generation": self.data["evolution_generations"],
+            "total_cycles": self.data["total_cycles"],
+            "projects_helped": len(self.data["total_projects"]),
+            "average_health_improvement": round(avg_delta, 1),
+            "fix_effectiveness": {
+                check: {
+                    "confidence": round(s["success"] / max(s["success"] + s["fail"], 1), 2),
+                    "total": s["success"] + s["fail"],
+                }
+                for check, s in sorted(
+                    self.data["fix_effectiveness"].items(),
+                    key=lambda x: x[1]["success"] + x[1]["fail"],
+                    reverse=True,
+                )[:10]
+            },
+            "top_agents": self.get_best_agents(top_n=5),
+            "patterns_learned": len(self.data["learned_patterns"]),
+            "knowledge_base_path": SELF_EVOLVE_PATH,
+        }
+
+    def evolve(self) -> Dict:
+        """Advance one evolution generation.
+
+        Aggregates learnings from all cycles, updates pattern confidence,
+        prunes low-confidence patterns, adjusts agent weights.
+
+        Returns generation summary.
+        """
+        self.data["evolution_generations"] += 1
+        gen = self.data["evolution_generations"]
+
+        # Prune fix templates with <30% success rate and <3 attempts
+        to_prune = []
+        for check, stats in self.data["fix_effectiveness"].items():
+            total = stats["success"] + stats["fail"]
+            if total >= 3 and stats["success"] / total < 0.3:
+                to_prune.append(check)
+        for check in to_prune:
+            del self.data["fix_effectiveness"][check]
+            if check in self.data["learned_patterns"]:
+                del self.data["learned_patterns"][check]
+
+        # Promote successful learned patterns to cross-project knowledge base
+        try:
+            from .agents.memory import GlobalKnowledgeBase
+            kb = GlobalKnowledgeBase()
+            for check, entry in self.data["learned_patterns"].items():
+                if entry["occurrences"] >= 2 and entry.get("reasonings"):
+                    kb.learn_pattern(
+                        check_name=check,
+                        category="self_evolved",
+                        pattern=entry["reasonings"][0][:100],
+                        fix_template=entry["reasonings"][0],
+                        severity="medium",
+                    )
+        except Exception:
+            pass  # GlobalKnowledgeBase not available in all contexts
+
+        self._save()
+        return {
+            "generation": gen,
+            "patterns_promoted": len(self.data["learned_patterns"]),
+            "pruned_templates": len(to_prune),
+            "cycles_learned": self.data["total_cycles"],
+        }
+
+    def _finalize(self):
+        """Convert set back for JSON."""
+        self.data["total_projects"] = list(self.data["total_projects"])

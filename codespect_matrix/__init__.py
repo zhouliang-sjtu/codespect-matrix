@@ -57,6 +57,7 @@ from .agents import (
 from .evolution import (
     HealthScorer, TechDebtAnalyzer, ArchitectureAnalyzer,
     TestCoverageEstimator, EvolutionReporter, EvolutionBaseline,
+    SelfEvolver,
 )
 
 __all__ = [
@@ -72,4 +73,5 @@ __all__ = [
     # Evolution engine
     "HealthScorer", "TechDebtAnalyzer", "ArchitectureAnalyzer",
     "TestCoverageEstimator", "EvolutionReporter", "EvolutionBaseline",
+    "SelfEvolver",
 ]
