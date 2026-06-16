@@ -78,3 +78,6 @@ RELEASE_NOTES*.md
 
 # Trae IDE skills (local only)
 .trae/
+
+# Local docs (articles, drafts, working notes - not for GitHub)
+docs/
