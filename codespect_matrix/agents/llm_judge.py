@@ -157,7 +157,7 @@ class LLMJudge:
             "OLLAMA_BASE_URL",
             os.getenv("DASHSCOPE_BASE_URL", "http://localhost:11434")
         )
-        self.model = model or os.getenv("DASHSCOPE_MODEL", "qwen2.5:14b")
+        self.model = model or os.getenv("DASHSCOPE_MODEL", "qwen-plus")
         self.temperature = temperature
         self.timeout = timeout
 
